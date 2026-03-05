@@ -175,4 +175,4 @@ See [deploy/workload.example.yaml](deploy/workload.example.yaml) for a complete 
 
 ## License
 
-[Apache-2.0](LICENSE)
+[MIT](LICENSE)
