@@ -1,0 +1,23 @@
+# Global fallback — lead reviews everything
+*                                   @benny
+
+# Raft consensus — lead reviews all changes, no exceptions
+/internal/consensus/                @benny
+
+# Proto contracts — lead reviews all API changes
+/api/proto/                         @benny
+
+# Cloud adapters — member 2 owns
+/internal/provisioner/adapters/     @benny
+
+# Build pipeline — member 2 owns
+/internal/build/                    @benny
+
+# Replication layer — member 3 owns
+/internal/replication/              @benny
+
+# Dashboard — member 3 owns
+/dashboard/                         @soham
+
+# Migrations — lead reviews all schema changes
+/internal/store/migrations/         @benny

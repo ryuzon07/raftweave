@@ -1,0 +1,120 @@
+syntax = "proto3";
+
+package raftweave.v1;
+
+option go_package = "github.com/raftweave/raftweave/internal/gen/raftweave/v1;raftweavev1";
+
+import "google/protobuf/timestamp.proto";
+import "raftweave/v1/common.proto";
+
+// WorkloadDescriptor defines a complete workload to be orchestrated.
+message WorkloadDescriptor {
+  string name = 1;
+  SourceSpec source = 2;
+  RegionConfig regions = 3;
+  ResourceSpec compute = 4;
+  DatabaseSpec database = 5;
+  FailoverConfig failover = 6;
+  map<string, string> labels = 7;
+}
+
+message SourceSpec {
+  string type = 1; // git | image
+  string repo_url = 2;
+  string branch = 3;
+  string dockerfile = 4;
+  string image_ref = 5;
+}
+
+message RegionConfig {
+  RegionTarget primary = 1;
+  repeated RegionTarget standbys = 2;
+}
+
+message RegionTarget {
+  CloudProvider provider = 1;
+  Region region = 2;
+}
+
+message FailoverConfig {
+  int32 rto_seconds = 1;
+  int32 rpo_seconds = 2;
+  bool auto_failover = 3;
+  int32 min_healthy_nodes = 4;
+  bool fencing_enabled = 5;
+}
+
+// CloudCredentials holds encrypted provider credentials.
+message CloudCredentials {
+  string id = 1;
+  CloudProvider provider = 2;
+  string credential_type = 3;
+  bytes encrypted_payload = 4;
+}
+
+// WebhookEvent represents an incoming source control webhook.
+message WebhookEvent {
+  string repo_url = 1;
+  string branch = 2;
+  string commit_sha = 3;
+  google.protobuf.Timestamp triggered_at = 4;
+}
+
+// Request/Response messages
+
+message ListWorkloadsRequest {
+  PaginationRequest pagination = 1;
+  map<string, string> label_selector = 2;
+}
+
+message ListWorkloadsResponse {
+  repeated GetWorkloadStatusResponse workloads = 1;
+  PaginationResponse pagination = 2;
+}
+
+// SubmitWorkloadRequest wraps the workload descriptor for submission.
+// IngestionService handles workload submission and credential management.
+message SubmitWorkloadRequest {
+  WorkloadDescriptor workload = 1;
+}
+
+// SubmitWorkloadResponse returns the result of workload submission.
+message SubmitWorkloadResponse {
+  string workload_id = 1;
+  WorkloadStatus status = 2;
+  string message = 3;
+}
+
+// AddCloudCredentialsRequest wraps credentials for addition.
+message AddCloudCredentialsRequest {
+  CloudCredentials credentials = 1;
+}
+
+// AddCloudCredentialsResponse returns the result of credential addition.
+message AddCloudCredentialsResponse {
+  string credential_id = 1;
+  bool success = 2;
+  string message = 3;
+}
+
+// GetWorkloadStatusRequest identifies the workload to query.
+message GetWorkloadStatusRequest {
+  string workload_name = 1;
+}
+
+// GetWorkloadStatusResponse returns the status of a workload.
+message GetWorkloadStatusResponse {
+  string workload_name = 1;
+  WorkloadStatus status = 2;
+  RegionTarget primary_region = 3;
+  repeated RegionTarget standby_regions = 4;
+  google.protobuf.Timestamp last_updated = 5;
+}
+
+// IngestionService handles workload submission and credential management.
+service IngestionService {
+  rpc SubmitWorkload(SubmitWorkloadRequest) returns (SubmitWorkloadResponse);
+  rpc AddCloudCredentials(AddCloudCredentialsRequest) returns (AddCloudCredentialsResponse);
+  rpc GetWorkloadStatus(GetWorkloadStatusRequest) returns (GetWorkloadStatusResponse);
+  rpc ListWorkloads(ListWorkloadsRequest) returns (ListWorkloadsResponse);
+}

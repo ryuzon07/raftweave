@@ -1,0 +1,36 @@
+# Standalone 3-node Raft cluster overlay
+# Usage: docker compose -f docker-compose.yml -f docker-compose.raft.yml up
+
+services:
+  raftweave-node-1:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      RAFT_ELECTION_TIMEOUT_MS: "1000"
+      RAFT_HEARTBEAT_INTERVAL_MS: "300"
+      LOG_LEVEL: "debug"
+
+  raftweave-node-2:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      RAFT_ELECTION_TIMEOUT_MS: "1000"
+      RAFT_HEARTBEAT_INTERVAL_MS: "300"
+      LOG_LEVEL: "debug"
+
+  raftweave-node-3:
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      RAFT_ELECTION_TIMEOUT_MS: "1000"
+      RAFT_HEARTBEAT_INTERVAL_MS: "300"
+      LOG_LEVEL: "debug"

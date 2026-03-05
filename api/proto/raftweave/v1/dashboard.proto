@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package raftweave.v1;
+
+option go_package = "github.com/raftweave/raftweave/internal/gen/raftweave/v1;raftweavev1";
+
+import "google/protobuf/timestamp.proto";
+import "raftweave/v1/common.proto";
+import "raftweave/v1/consensus.proto";
+import "raftweave/v1/replication.proto";
+
+// WorkloadSummary is a condensed view of a workload for the dashboard.
+message WorkloadSummary {
+  string name = 1;
+  WorkloadStatus status = 2;
+  CloudProvider primary_provider = 3;
+  Region primary_region = 4;
+  int32 standby_count = 5;
+  google.protobuf.Timestamp last_updated = 6;
+}
+
+// SystemHealth aggregates health across all subsystems.
+message SystemHealth {
+  HealthStatus ingestion = 1;
+  HealthStatus build = 2;
+  HealthStatus consensus = 3;
+  HealthStatus provisioner = 4;
+  HealthStatus replication = 5;
+}
+
+// FailoverEvent is a historical record of a failover.
+message FailoverEvent {
+  string id = 1;
+  string workload_name = 2;
+  Region from_region = 3;
+  Region to_region = 4;
+  google.protobuf.Timestamp initiated_at = 5;
+  google.protobuf.Timestamp completed_at = 6;
+  int64 rto_seconds = 7;
+  int64 rpo_seconds = 8;
+  string status = 9;
+  string reason = 10;
+}
+
+// Request/Response messages
+message GetOverviewRequest {}
+
+message GetOverviewResponse {
+  RaftClusterState cluster = 1;
+  repeated WorkloadSummary workloads = 2;
+  repeated ReplicationStatus replications = 3;
+  SystemHealth system_health = 4;
+}
+
+message StreamOverviewRequest {}
+
+message StreamOverviewResponse {
+  RaftClusterState cluster = 1;
+  repeated WorkloadSummary workloads = 2;
+  repeated ReplicationStatus replications = 3;
+  SystemHealth system_health = 4;
+}
+
+message GetFailoverLogRequest {
+  string workload_name = 1;
+  PaginationRequest pagination = 2;
+}
+
+message GetFailoverLogResponse {
+  repeated FailoverEvent events = 1;
+  PaginationResponse pagination = 2;
+}
+
+// DashboardService provides aggregated views for the frontend.
+service DashboardService {
+  rpc GetOverview(GetOverviewRequest) returns (GetOverviewResponse);
+  rpc StreamOverview(StreamOverviewRequest) returns (stream StreamOverviewResponse);
+  rpc GetFailoverLog(GetFailoverLogRequest) returns (GetFailoverLogResponse);
+}

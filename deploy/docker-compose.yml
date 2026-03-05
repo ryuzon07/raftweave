@@ -1,0 +1,168 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-raftweave}
+      POSTGRES_USER: ${POSTGRES_USER:-raftweave}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-raftweave_secret}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-raftweave}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis_secret}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis_secret}", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  adminer:
+    image: adminer:latest
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  registry:
+    image: registry:2
+    ports:
+      - "5000:5000"
+    volumes:
+      - registry_data:/var/lib/registry
+
+  raftweave-node-1:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "7001:7001"
+      - "8001:8001"
+    environment:
+      RAFT_NODE_ID: "1"
+      RAFT_BIND_ADDR: "0.0.0.0:7001"
+      RAFT_PEERS: "raftweave-node-1:7001,raftweave-node-2:7002,raftweave-node-3:7003"
+      RAFT_DATA_DIR: "/data/raft"
+      RAFT_ELECTION_TIMEOUT_MS: "1500"
+      RAFT_HEARTBEAT_INTERVAL_MS: "500"
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "8001"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-raftweave}
+      POSTGRES_USER: ${POSTGRES_USER:-raftweave}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-raftweave_secret}
+      POSTGRES_SSL_MODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secret}
+      REGISTRY_URL: "registry:5000"
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+    volumes:
+      - raft_data_1:/data/raft
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  raftweave-node-2:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "7002:7002"
+      - "8002:8002"
+    environment:
+      RAFT_NODE_ID: "2"
+      RAFT_BIND_ADDR: "0.0.0.0:7002"
+      RAFT_PEERS: "raftweave-node-1:7001,raftweave-node-2:7002,raftweave-node-3:7003"
+      RAFT_DATA_DIR: "/data/raft"
+      RAFT_ELECTION_TIMEOUT_MS: "1500"
+      RAFT_HEARTBEAT_INTERVAL_MS: "500"
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "8002"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-raftweave}
+      POSTGRES_USER: ${POSTGRES_USER:-raftweave}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-raftweave_secret}
+      POSTGRES_SSL_MODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secret}
+      REGISTRY_URL: "registry:5000"
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+    volumes:
+      - raft_data_2:/data/raft
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  raftweave-node-3:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    ports:
+      - "7003:7003"
+      - "8003:8003"
+    environment:
+      RAFT_NODE_ID: "3"
+      RAFT_BIND_ADDR: "0.0.0.0:7003"
+      RAFT_PEERS: "raftweave-node-1:7001,raftweave-node-2:7002,raftweave-node-3:7003"
+      RAFT_DATA_DIR: "/data/raft"
+      RAFT_ELECTION_TIMEOUT_MS: "1500"
+      RAFT_HEARTBEAT_INTERVAL_MS: "500"
+      SERVER_HOST: "0.0.0.0"
+      SERVER_PORT: "8003"
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_DB: ${POSTGRES_DB:-raftweave}
+      POSTGRES_USER: ${POSTGRES_USER:-raftweave}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-raftweave_secret}
+      POSTGRES_SSL_MODE: disable
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-redis_secret}
+      REGISTRY_URL: "registry:5000"
+      LOG_LEVEL: ${LOG_LEVEL:-debug}
+    volumes:
+      - raft_data_3:/data/raft
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  dashboard:
+    build:
+      context: ../dashboard
+      dockerfile: Dockerfile
+    ports:
+      - "4200:4200"
+    volumes:
+      - ../dashboard/src:/app/src
+    environment:
+      NODE_ENV: development
+
+volumes:
+  postgres_data:
+  redis_data:
+  registry_data:
+  raft_data_1:
+  raft_data_2:
+  raft_data_3:

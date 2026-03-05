@@ -1,0 +1,66 @@
+# RaftWeave Workload Descriptor
+# This file defines a multi-cloud workload deployment configuration.
+# See deploy/workload.schema.json for the full JSON Schema.
+
+apiVersion: raftweave/v1
+kind: Workload
+
+metadata:
+  name: my-web-app
+  labels:
+    team: platform
+    env: production
+
+spec:
+  # Source code repository
+  source:
+    repository: https://github.com/example-org/my-web-app
+    branch: main
+    buildContext: .
+    dockerfile: Dockerfile
+
+  # Compute resource requirements
+  resources:
+    cpu: "1.0"
+    memoryMB: 512
+    replicas: 2
+
+  # Database configuration (optional)
+  database:
+    engine: postgres
+    version: "16"
+    storageSizeGB: 20
+    highAvailability: true
+
+  # Networking
+  networking:
+    port: 8080
+    healthCheckPath: /healthz
+    public: true
+
+  # Primary cloud deployment target
+  primary:
+    cloud: aws
+    region: us-east-1
+
+  # Failover target (optional)
+  failover:
+    cloud: azure
+    region: eastus
+    automatic: true
+    rtoSeconds: 120
+    rpoSeconds: 30
+
+  # Replication settings (optional)
+  replication:
+    enabled: true
+    mode: async
+    lagThresholdSeconds: 10
+
+  # Environment variables
+  env:
+    - name: LOG_LEVEL
+      value: info
+    - name: DATABASE_URL
+      valueFrom:
+        secretRef: my-web-app-db-url

@@ -1,0 +1,89 @@
+syntax = "proto3";
+
+package raftweave.v1;
+
+option go_package = "github.com/raftweave/raftweave/internal/gen/raftweave/v1;raftweavev1";
+
+import "google/protobuf/timestamp.proto";
+
+// BuildJob represents a container image build task.
+message BuildJob {
+  string job_id = 1;
+  string workload_name = 2;
+  string repo_url = 3;
+  string commit_sha = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+// BuildLogEntry is a single log line emitted during a build.
+message BuildLogEntry {
+  string job_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  string level = 3;
+  string message = 4;
+  string step = 5;
+}
+
+// BuildResult captures the outcome of a build job.
+message BuildResult {
+  string job_id = 1;
+  BuildStatus status = 2;
+  string image_digest = 3;
+  int64 duration_seconds = 4;
+  string error = 5;
+}
+
+enum BuildStatus {
+  BUILD_STATUS_UNSPECIFIED = 0;
+  BUILD_STATUS_QUEUED = 1;
+  BUILD_STATUS_IN_PROGRESS = 2;
+  BUILD_STATUS_SUCCEEDED = 3;
+  BUILD_STATUS_FAILED = 4;
+}
+
+// Request/Response messages
+message TriggerBuildRequest {
+  string workload_name = 1;
+  string repo_url = 2;
+  string commit_sha = 3;
+  string branch = 4;
+  string dockerfile = 5;
+}
+
+message TriggerBuildResponse {
+  string job_id = 1;
+  BuildStatus status = 2;
+  string message = 3;
+}
+
+message StreamBuildLogsRequest {
+  string job_id = 1;
+  bool follow = 2;
+}
+
+message StreamBuildLogsResponse {
+  string job_id = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  string level = 3;
+  string message = 4;
+  string step = 5;
+}
+
+message GetBuildResultRequest {
+  string job_id = 1;
+}
+
+message GetBuildResultResponse {
+  string job_id = 1;
+  BuildStatus status = 2;
+  string image_digest = 3;
+  int64 duration_seconds = 4;
+  string error = 5;
+}
+
+// BuildService manages container image builds.
+service BuildService {
+  rpc TriggerBuild(TriggerBuildRequest) returns (TriggerBuildResponse);
+  rpc StreamBuildLogs(StreamBuildLogsRequest) returns (stream StreamBuildLogsResponse);
+  rpc GetBuildResult(GetBuildResultRequest) returns (GetBuildResultResponse);
+}

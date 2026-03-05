@@ -1,0 +1,106 @@
+syntax = "proto3";
+
+package raftweave.v1;
+
+option go_package = "github.com/raftweave/raftweave/internal/gen/raftweave/v1;raftweavev1";
+
+import "google/protobuf/timestamp.proto";
+import "raftweave/v1/common.proto";
+
+// ProvisioningAction defines what provisioning operation to perform.
+enum ProvisioningAction {
+  PROVISIONING_ACTION_UNSPECIFIED = 0;
+  PROVISIONING_ACTION_PROVISION = 1;
+  PROVISIONING_ACTION_DEPROVISION = 2;
+  PROVISIONING_ACTION_SCALE_UP = 3;
+  PROVISIONING_ACTION_SCALE_DOWN = 4;
+}
+
+// ProvisioningJob describes a cloud resource provisioning task.
+message ProvisioningJob {
+  string job_id = 1;
+  string workload_name = 2;
+  CloudProvider provider = 3;
+  Region region = 4;
+  ProvisioningAction action = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+// CloudResource represents a provisioned cloud resource.
+message CloudResource {
+  string resource_id = 1;
+  CloudProvider provider = 2;
+  Region region = 3;
+  string type = 4;
+  string status = 5;
+  string endpoint = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+// FailoverCommand initiates a failover operation.
+message FailoverCommand {
+  string workload_name = 1;
+  Region from_region = 2;
+  Region to_region = 3;
+  google.protobuf.Timestamp initiated_at = 4;
+  string reason = 5;
+}
+
+// FailoverResult captures the outcome of a failover operation.
+message FailoverResult {
+  string command_id = 1;
+  string status = 2;
+  google.protobuf.Timestamp completed_at = 3;
+  int64 rto_seconds = 4;
+  int64 rpo_seconds = 5;
+  int64 data_loss_window_seconds = 6;
+}
+
+// Request/Response messages
+message ProvisionWorkloadRequest {
+  string workload_name = 1;
+  CloudProvider provider = 2;
+  Region region = 3;
+  ProvisioningAction action = 4;
+  ResourceSpec compute = 5;
+  DatabaseSpec database = 6;
+}
+
+message ProvisionWorkloadResponse {
+  string job_id = 1;
+  string status = 2;
+  string message = 3;
+}
+
+message ExecuteFailoverRequest {
+  string workload_name = 1;
+  Region from_region = 2;
+  Region to_region = 3;
+  google.protobuf.Timestamp initiated_at = 4;
+  string reason = 5;
+}
+
+message ExecuteFailoverResponse {
+  string command_id = 1;
+  string status = 2;
+  google.protobuf.Timestamp completed_at = 3;
+  int64 rto_seconds = 4;
+  int64 rpo_seconds = 5;
+  int64 data_loss_window_seconds = 6;
+}
+
+message GetResourceStatusRequest {
+  string workload_name = 1;
+  CloudProvider provider = 2;
+}
+
+message GetResourceStatusResponse {
+  repeated CloudResource resources = 1;
+}
+
+// ProvisionerService manages cloud resource provisioning and failover.
+service ProvisionerService {
+  rpc ProvisionWorkload(ProvisionWorkloadRequest) returns (ProvisionWorkloadResponse);
+  rpc ExecuteFailover(ExecuteFailoverRequest) returns (ExecuteFailoverResponse);
+  rpc GetResourceStatus(GetResourceStatusRequest) returns (GetResourceStatusResponse);
+}

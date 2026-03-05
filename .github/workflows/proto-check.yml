@@ -1,0 +1,29 @@
+name: Proto Check
+
+on:
+  push:
+    branches: [main, develop]
+    paths:
+      - "api/proto/**"
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - "api/proto/**"
+
+jobs:
+  proto:
+    name: Protobuf Lint & Compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bufbuild/buf-setup-action@v1
+      - name: Buf lint
+        run: buf lint api/proto
+      - name: Buf generate (dry run)
+        run: buf generate api/proto --include-imports
+      - name: Buf breaking change detection
+        uses: bufbuild/buf-breaking-action@v1
+        with:
+          input: api/proto
+          against: "https://github.com/${{ github.repository }}.git#branch=main,subdir=api/proto"
+        continue-on-error: true
