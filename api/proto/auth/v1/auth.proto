@@ -1,0 +1,101 @@
+syntax = "proto3";
+package auth.v1;
+option go_package = "github.com/raftweave/raftweave/internal/gen/auth/v1;authv1";
+
+import "google/protobuf/timestamp.proto";
+
+// AuthService provides authentication and session management RPCs.
+service AuthService {
+    // OTP flow
+    rpc RequestOTP   (RequestOTPRequest)   returns (RequestOTPResponse);
+    rpc VerifyOTP    (VerifyOTPRequest)    returns (AuthTokenResponse);
+
+    // Token management
+    rpc RefreshToken (RefreshTokenRequest) returns (AuthTokenResponse);
+    rpc Logout       (LogoutRequest)       returns (LogoutResponse);
+    rpc LogoutAll    (LogoutAllRequest)    returns (LogoutResponse);
+
+    // Session info
+    rpc GetMe        (GetMeRequest)        returns (GetMeResponse);
+    rpc ListSessions (ListSessionsRequest) returns (ListSessionsResponse);
+
+    // Repository access
+    rpc ListUserRepos    (ListUserReposRequest)    returns (ListUserReposResponse);
+    rpc RevokeRepoAccess (RevokeRepoAccessRequest) returns (RevokeRepoAccessResponse);
+}
+
+message RequestOTPRequest  { string email = 1; }
+message RequestOTPResponse {
+    string challenge_id = 1;
+    int32  expires_in   = 2;
+}
+
+message VerifyOTPRequest {
+    string challenge_id = 1;
+    string code         = 2;
+}
+
+message RefreshTokenRequest {
+    string refresh_token = 1;
+}
+
+message AuthTokenResponse {
+    string   access_token            = 1;
+    string   refresh_token           = 2;
+    int32    access_token_expires_in = 3;
+    int32    refresh_token_expires_in = 4;
+    UserInfo user                    = 5;
+}
+
+message LogoutRequest    { string refresh_token = 1; }
+message LogoutAllRequest {}
+message LogoutResponse   { bool success = 1; }
+
+message GetMeRequest {}
+message GetMeResponse {
+    UserInfo user = 1;
+    repeated WorkspaceRole roles = 2;
+}
+
+message UserInfo {
+    string   user_id        = 1;
+    string   email          = 2;
+    string   name           = 3;
+    string   avatar_url     = 4;
+    string   provider       = 5;
+    bool     email_verified = 6;
+    google.protobuf.Timestamp created_at    = 7;
+    google.protobuf.Timestamp last_login_at = 8;
+}
+
+message WorkspaceRole {
+    string workspace_id   = 1;
+    string workspace_name = 2;
+    string role           = 3;
+}
+
+message SessionInfo {
+    string   session_id  = 1;
+    string   fingerprint = 2;
+    google.protobuf.Timestamp created_at = 3;
+    google.protobuf.Timestamp expires_at = 4;
+    bool     is_current  = 5;
+}
+
+message ListSessionsRequest  {}
+message ListSessionsResponse { repeated SessionInfo sessions = 1; }
+
+message ListUserReposRequest  {}
+message ListUserReposResponse { repeated GitHubRepository repos = 1; }
+
+message GitHubRepository {
+    int64  id             = 1;
+    string full_name      = 2;
+    string html_url       = 3;
+    string default_branch = 4;
+    bool   is_private     = 5;
+    string clone_url      = 6;
+}
+
+message RevokeRepoAccessRequest  { string repo_full_name = 1; }
+message RevokeRepoAccessResponse { bool revoked = 1; }

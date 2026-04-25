@@ -1,0 +1,153 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-auth
+  labels:
+    app.kubernetes.io/name: raftweave-auth
+    app.kubernetes.io/component: auth
+    app.kubernetes.io/part-of: raftweave
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: raftweave-auth
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: raftweave-auth
+        app.kubernetes.io/component: auth
+        app.kubernetes.io/part-of: raftweave
+    spec:
+      serviceAccountName: raftweave-auth
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: auth
+          image: ghcr.io/ryuzon07/raftweave/auth:latest
+          ports:
+            - name: grpc
+              containerPort: 8080
+              protocol: TCP
+            - name: health
+              containerPort: 8081
+              protocol: TCP
+          env:
+            - name: JWT_PRIVATE_KEY_PEM
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-auth-secrets
+                  key: jwt_private_key_pem
+            - name: ENCRYPTION_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-auth-secrets
+                  key: encryption_key
+            - name: GITHUB_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-oauth-secrets
+                  key: github_client_id
+            - name: GITHUB_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-oauth-secrets
+                  key: github_client_secret
+            - name: GOOGLE_CLIENT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-oauth-secrets
+                  key: google_client_id
+            - name: GOOGLE_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-oauth-secrets
+                  key: google_client_secret
+            - name: SMTP_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-smtp
+                  key: host
+            - name: SMTP_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-smtp
+                  key: port
+            - name: SMTP_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-smtp
+                  key: username
+            - name: SMTP_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-smtp
+                  key: password
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-redis
+                  key: url
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-postgres
+                  key: url
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: health
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: raftweave-auth
+  labels:
+    app.kubernetes.io/name: raftweave-auth
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: raftweave-auth
+  ports:
+    - name: grpc
+      port: 8080
+      targetPort: grpc
+    - name: health
+      port: 8081
+      targetPort: health
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: raftweave-auth
+  labels:
+    app.kubernetes.io/name: raftweave-auth
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: raftweave-auth-pdb
+  labels:
+    app.kubernetes.io/name: raftweave-auth
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: raftweave-auth
