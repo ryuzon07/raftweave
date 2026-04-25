@@ -1,9 +1,9 @@
-import { createTransport } from '@connectrpc/connect-web';
+import { createConnectTransport } from '@connectrpc/connect-web';
 import { createClient } from '@connectrpc/connect';
 import { environment } from '../../../environments/environment';
 
-export function createConnectTransport() {
-  return createTransport({
+export function getConnectTransport() {
+  return createConnectTransport({
     baseUrl: environment.apiBaseUrl,
   });
 }

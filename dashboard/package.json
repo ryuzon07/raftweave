@@ -1,44 +1,37 @@
 {
-  "name": "dashboard",
+  "name": "raftweave",
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng test"
+    "watch": "ng build --watch --configuration development"
   },
   "private": true,
+  "packageManager": "npm@11.9.0",
   "dependencies": {
-    "@angular/common": "^19.2.0",
-    "@angular/compiler": "^19.2.0",
-    "@angular/core": "^19.2.0",
-    "@angular/forms": "^19.2.0",
-    "@angular/platform-browser": "^19.2.0",
-    "@angular/platform-browser-dynamic": "^19.2.0",
-    "@angular/router": "^19.2.0",
-    "@connectrpc/connect": "^2.0.0",
-    "@connectrpc/connect-web": "^2.0.0",
-    "@bufbuild/protobuf": "^2.0.0",
+    "@angular/common": "^22.0.0-next.0",
+    "@angular/compiler": "^22.0.0-next.0",
+    "@angular/core": "^22.0.0-next.0",
+    "@angular/forms": "^22.0.0-next.0",
+    "@angular/platform-browser": "^22.0.0-next.0",
+    "@angular/router": "^22.0.0-next.0",
+    "@bufbuild/protobuf": "^2.12.0",
+    "@connectrpc/connect": "^2.1.1",
+    "@connectrpc/connect-web": "^2.1.1",
+    "@tailwindcss/postcss": "^4.2.4",
+    "gsap": "^3.15.0",
+    "lenis": "^1.3.23",
+    "postcss": "^8.5.10",
     "rxjs": "~7.8.0",
+    "tailwindcss": "^4.2.4",
     "tslib": "^2.3.0"
   },
   "devDependencies": {
-    "@angular-devkit/build-angular": "^19.2.22",
-    "@angular/cli": "^19.2.22",
-    "@angular/compiler-cli": "^19.2.0",
-    "@types/jasmine": "~5.1.0",
-    "jasmine-core": "~5.6.0",
-    "karma": "~6.4.0",
-    "karma-chrome-launcher": "~3.2.0",
-    "karma-coverage": "~2.2.0",
-    "karma-jasmine": "~5.1.0",
-    "karma-jasmine-html-reporter": "~2.1.0",
-    "typescript": "~5.7.2",
-    "autoprefixer": "^10.4.0"
-  },
-  "overrides": {
-    "@angular/build>tailwindcss": "3.4.19",
-    "@angular/devkit/build-angular>tailwindcss": "3.4.19"
+    "@angular/build": "^22.0.0-next.6",
+    "@angular/cli": "^22.0.0-next.6",
+    "@angular/compiler-cli": "^22.0.0-next.0",
+    "prettier": "^3.8.1",
+    "typescript": "~6.0.2"
   }
 }

@@ -1,5 +1,403 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
 
-/* You can add global styles to this file, and also import other style files */
+/* ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   RAFTWEAVE DESIGN SYSTEM — Premium Developer-Core
+   Deep Violet/Indigo + Glassmorphism + 8-bit Retro
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ */
+
+@theme {
+  --color-rw-deep: #42447F;
+  --color-rw-core: #5152A2;
+  --color-rw-mid: #5B6ABD;
+  --color-rw-accent: #777EF0;
+  --color-rw-mist: #E3E9FF;
+  --color-rw-white: #FFFFFF;
+
+  --color-leader: #777EF0;
+  --color-follower: #5B6ABD;
+  --color-healthy: #6EE7B7;
+  --color-degraded: #FCD34D;
+  --color-failed: #F87171;
+
+  --color-surface-1: #42447F;
+  --color-surface-2: #5152A2;
+  --color-surface-3: #5B6ABD;
+
+  --font-heading: 'BM Space', 'Space Grotesk', sans-serif;
+  --font-body: 'New Rodin Pro', 'Inter', sans-serif;
+  --font-mono: 'Rodin Pro', 'JetBrains Mono', monospace;
+}
+
+/* ━━━ CSS CUSTOM PROPERTIES ━━━ */
+:root {
+  --rw-deep: #42447F;
+  --rw-core: #5152A2;
+  --rw-mid: #5B6ABD;
+  --rw-accent: #777EF0;
+  --rw-mist: #E3E9FF;
+  --rw-white: #FFFFFF;
+
+  --leader: #777EF0;
+  --follower: #5B6ABD;
+  --healthy: #6EE7B7;
+  --degraded: #FCD34D;
+  --failed: #F87171;
+
+  --surface-1: #42447F;
+  --surface-2: #5152A2;
+  --surface-3: #5B6ABD;
+
+  --text-hero: clamp(2.5rem, 5vw, 4rem);
+  --text-title: 1.5rem;
+  --text-section: 1.125rem;
+  --text-body: 0.875rem;
+  --text-mono: 0.8rem;
+  --text-xs: 0.7rem;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+
+  --sidebar-width: 240px;
+  --sidebar-collapsed: 64px;
+  --topbar-height: 48px;
+
+  --glow-accent: 0 0 20px rgba(119, 126, 240, 0.4);
+  --glow-leader: 0 0 24px rgba(119, 126, 240, 0.6);
+  --glow-healthy: 0 0 12px rgba(110, 231, 183, 0.4);
+  --glow-failed: 0 0 12px rgba(248, 113, 113, 0.4);
+
+  --transition-fast: 0.15s ease-out;
+  --transition-base: 0.3s ease-out;
+  --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ━━━ GLOBAL RESET & DARK BASE ━━━ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--rw-deep);
+  color: var(--rw-white);
+  scroll-behavior: auto; /* Lenis handles smooth scroll */
+}
+
+body {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: 400;
+  line-height: 1.6;
+  background-color: var(--rw-deep);
+  color: var(--rw-mist);
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--rw-white);
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+code, pre, .mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+}
+
+a {
+  color: var(--rw-accent);
+  text-decoration: none;
+  transition: color var(--transition-fast);
+}
+
+a:hover {
+  color: var(--rw-white);
+}
+
+/* ━━━ SCROLLBAR ━━━ */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(119, 126, 240, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(119, 126, 240, 0.4);
+}
+
+::selection {
+  background: rgba(119, 126, 240, 0.3);
+  color: var(--rw-white);
+}
+
+/* ━━━ KEYFRAME ANIMATIONS ━━━ */
+@keyframes rw-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+@keyframes rw-pulse-dot {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.4); opacity: 0.6; }
+}
+
+@keyframes rw-breathe {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.15); }
+}
+
+/* Radiating ring pulse — constant expanding halo */
+@keyframes rw-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.6;
+  }
+  75%, 100% {
+    transform: scale(2.5);
+    opacity: 0;
+  }
+}
+
+@keyframes rw-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rw-slide-in-right {
+  from { opacity: 0; transform: translateX(100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes rw-slide-in-left {
+  from { opacity: 0; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes rw-scale-in {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes rw-shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+@keyframes rw-spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes rw-dash {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes rw-flow {
+  0% { stroke-dashoffset: 20; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes rw-glow-pulse {
+  0%, 100% { box-shadow: var(--glow-accent); }
+  50% { box-shadow: 0 0 32px rgba(119, 126, 240, 0.7); }
+}
+
+@keyframes rw-counter-flash {
+  0% { color: var(--rw-accent); }
+  100% { color: var(--rw-white); }
+}
+
+/* 8-bit cloud parallax drift */
+@keyframes rw-cloud-drift-slow {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes rw-cloud-drift-mid {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+@keyframes rw-cloud-drift-fast {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+/* ━━━ UTILITY CLASSES — Glassmorphism Cards ━━━ */
+.rw-card {
+  background: rgba(81, 82, 162, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  transition: all 0.3s ease-out;
+  box-shadow:
+    0 4px 24px rgba(30, 30, 80, 0.4),
+    0 1px 0 rgba(255, 255, 255, 0.03) inset;
+}
+
+.rw-card:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  transform: translateY(-4px);
+  box-shadow:
+    0 12px 48px rgba(20, 20, 60, 0.6),
+    0 1px 0 rgba(255, 255, 255, 0.05) inset;
+}
+
+.rw-card-static {
+  background: rgba(81, 82, 162, 0.25);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  box-shadow: 0 4px 24px rgba(30, 30, 80, 0.4);
+}
+
+.rw-glass {
+  background: rgba(81, 82, 162, 0.3);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rw-surface-1 { background: var(--surface-1); }
+.rw-surface-2 { background: var(--surface-2); }
+.rw-surface-3 { background: var(--surface-3); }
+
+.rw-text-hero {
+  font-family: var(--font-heading);
+  font-size: var(--text-hero);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.rw-text-title {
+  font-family: var(--font-heading);
+  font-size: var(--text-title);
+  font-weight: 600;
+}
+
+.rw-text-section {
+  font-family: var(--font-body);
+  font-size: var(--text-section);
+  font-weight: 500;
+}
+
+.rw-text-body {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: 400;
+}
+
+.rw-text-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  font-weight: 400;
+}
+
+.rw-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--rw-accent);
+  color: var(--rw-white);
+  font-family: var(--font-heading);
+  font-size: var(--text-body);
+  font-weight: 600;
+  border: none;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+}
+
+.rw-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(119, 126, 240, 0.4);
+}
+
+.rw-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  color: var(--rw-mist);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  font-weight: 500;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all 0.3s ease-out;
+}
+
+.rw-btn-ghost:hover {
+  border-color: var(--rw-accent);
+  color: var(--rw-white);
+  background: rgba(119, 126, 240, 0.1);
+}
+
+.rw-divider {
+  width: 100%;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+}
+
+.rw-terminal {
+  background: rgba(10, 10, 24, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+  padding: 16px;
+  font-family: var(--font-mono);
+  font-size: var(--text-mono);
+  color: var(--rw-mist);
+  overflow-y: auto;
+  line-height: 1.7;
+}
+
+.rw-terminal .stdout { color: var(--rw-white); }
+.rw-terminal .stderr { color: var(--failed); }
+.rw-terminal .info { color: var(--rw-accent); }
+.rw-terminal .timestamp { color: var(--rw-mid); margin-right: 8px; }
+
+/* ━━━ SKELETON LOADER ━━━ */
+.rw-skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(81, 82, 162, 0.3) 25%,
+    rgba(91, 106, 189, 0.3) 50%,
+    rgba(81, 82, 162, 0.3) 75%
+  );
+  background-size: 200% 100%;
+  animation: rw-shimmer 1.5s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+/* ━━━ RESPONSIVE ━━━ */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 0px;
+    --sidebar-collapsed: 0px;
+  }
+}
