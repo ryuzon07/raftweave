@@ -1,0 +1,262 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raftweave.dev/schemas/workload.schema.json",
+  "title": "RaftWeave Workload Descriptor",
+  "description": "Defines a multi-cloud workload deployment for the RaftWeave control plane.",
+  "type": "object",
+  "required": ["apiVersion", "kind", "metadata", "spec"],
+  "additionalProperties": false,
+  "properties": {
+    "apiVersion": {
+      "type": "string",
+      "const": "raftweave/v1",
+      "description": "API version of the workload descriptor."
+    },
+    "kind": {
+      "type": "string",
+      "const": "Workload",
+      "description": "Resource kind."
+    },
+    "metadata": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9-]{0,61}[a-z0-9]$",
+          "description": "Unique workload name (DNS-compatible)."
+        },
+        "labels": {
+          "type": "object",
+          "additionalProperties": { "type": "string" },
+          "description": "Key-value labels for organizational metadata."
+        }
+      }
+    },
+    "spec": {
+      "type": "object",
+      "required": ["source", "resources", "primary"],
+      "additionalProperties": false,
+      "properties": {
+        "source": {
+          "type": "object",
+          "required": ["repository"],
+          "additionalProperties": false,
+          "properties": {
+            "repository": {
+              "type": "string",
+              "format": "uri",
+              "description": "Git repository URL."
+            },
+            "branch": {
+              "type": "string",
+              "default": "main",
+              "description": "Git branch to build from."
+            },
+            "buildContext": {
+              "type": "string",
+              "default": ".",
+              "description": "Docker build context path relative to repo root."
+            },
+            "dockerfile": {
+              "type": "string",
+              "default": "Dockerfile",
+              "description": "Path to Dockerfile relative to build context."
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "required": ["cpu", "memoryMB"],
+          "additionalProperties": false,
+          "properties": {
+            "cpu": {
+              "type": "string",
+              "pattern": "^[0-9]+(\\.[0-9]+)?$",
+              "description": "CPU cores allocated (e.g., '0.5', '1.0', '2')."
+            },
+            "memoryMB": {
+              "type": "integer",
+              "minimum": 128,
+              "maximum": 65536,
+              "description": "Memory in megabytes."
+            },
+            "replicas": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 1,
+              "description": "Number of container replicas."
+            }
+          }
+        },
+        "database": {
+          "type": "object",
+          "required": ["engine", "version"],
+          "additionalProperties": false,
+          "properties": {
+            "engine": {
+              "type": "string",
+              "enum": ["postgres", "mysql"],
+              "description": "Database engine type."
+            },
+            "version": {
+              "type": "string",
+              "description": "Database engine version."
+            },
+            "storageSizeGB": {
+              "type": "integer",
+              "minimum": 5,
+              "maximum": 10000,
+              "default": 20,
+              "description": "Allocated storage in gigabytes."
+            },
+            "highAvailability": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable multi-AZ high availability."
+            }
+          }
+        },
+        "networking": {
+          "type": "object",
+          "required": ["port"],
+          "additionalProperties": false,
+          "properties": {
+            "port": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "description": "Application listen port."
+            },
+            "healthCheckPath": {
+              "type": "string",
+              "default": "/healthz",
+              "description": "HTTP health check endpoint path."
+            },
+            "public": {
+              "type": "boolean",
+              "default": false,
+              "description": "Whether the workload is publicly accessible."
+            }
+          }
+        },
+        "primary": {
+          "$ref": "#/$defs/cloudTarget",
+          "description": "Primary cloud deployment target."
+        },
+        "failover": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cloud", "region"],
+          "properties": {
+            "cloud": {
+              "$ref": "#/$defs/cloudProvider"
+            },
+            "region": {
+              "type": "string",
+              "description": "Cloud region identifier."
+            },
+            "automatic": {
+              "type": "boolean",
+              "default": true,
+              "description": "Enable automatic failover via Raft consensus."
+            },
+            "rtoSeconds": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Recovery Time Objective in seconds."
+            },
+            "rpoSeconds": {
+              "type": "integer",
+              "minimum": 0,
+              "description": "Recovery Point Objective in seconds."
+            }
+          }
+        },
+        "replication": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "default": false,
+              "description": "Enable database replication to failover target."
+            },
+            "mode": {
+              "type": "string",
+              "enum": ["sync", "async"],
+              "default": "async",
+              "description": "Replication mode."
+            },
+            "lagThresholdSeconds": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 10,
+              "description": "Maximum acceptable replication lag before alerting."
+            }
+          }
+        },
+        "env": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/envVar"
+          },
+          "description": "Environment variables for the workload."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "cloudProvider": {
+      "type": "string",
+      "enum": ["aws", "azure", "gcp"],
+      "description": "Supported cloud provider."
+    },
+    "cloudTarget": {
+      "type": "object",
+      "required": ["cloud", "region"],
+      "additionalProperties": false,
+      "properties": {
+        "cloud": {
+          "$ref": "#/$defs/cloudProvider"
+        },
+        "region": {
+          "type": "string",
+          "description": "Cloud region identifier."
+        }
+      }
+    },
+    "envVar": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Z_][A-Z0-9_]*$",
+          "description": "Environment variable name."
+        },
+        "value": {
+          "type": "string",
+          "description": "Literal value."
+        },
+        "valueFrom": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "secretRef": {
+              "type": "string",
+              "description": "Reference to a managed secret."
+            }
+          }
+        }
+      },
+      "oneOf": [
+        { "required": ["value"] },
+        { "required": ["valueFrom"] }
+      ]
+    }
+  }
+}

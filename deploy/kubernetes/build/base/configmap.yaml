@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: raftweave-build-config
+  namespace: raftweave
+data:
+  registry_url: "registry.raftweave.io"
+  kaniko_image: "gcr.io/kaniko-project/executor:v1.23.2"

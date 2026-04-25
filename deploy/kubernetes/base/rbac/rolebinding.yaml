@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: raftweave
+  namespace: raftweave
+  labels:
+    app.kubernetes.io/name: raftweave
+    app.kubernetes.io/managed-by: kustomize
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: raftweave
+subjects:
+  - kind: ServiceAccount
+    name: raftweave
+    namespace: raftweave

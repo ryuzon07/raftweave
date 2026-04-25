@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package raftweave.health.v1;
+
+option go_package = "github.com/raftweave/raftweave/internal/gen/raftweave/health/v1;healthv1";
+
+// CheckRequest is sent to check the health of a service.
+message CheckRequest {
+  string service = 1;
+}
+
+// CheckResponse contains the health status.
+message CheckResponse {
+  enum ServingStatus {
+    SERVING_STATUS_UNSPECIFIED = 0;
+    SERVING_STATUS_SERVING = 1;
+    SERVING_STATUS_NOT_SERVING = 2;
+    SERVING_STATUS_SERVICE_UNKNOWN = 3;
+  }
+  ServingStatus status = 1;
+}
+
+// WatchRequest is sent to watch the health of a service.
+message WatchRequest {
+  string service = 1;
+}
+
+// WatchResponse contains the streaming health status.
+message WatchResponse {
+  CheckResponse.ServingStatus status = 1;
+}
+
+// HealthService implements the standard gRPC health checking protocol.
+service HealthService {
+  rpc Check(CheckRequest) returns (CheckResponse);
+  rpc Watch(WatchRequest) returns (stream WatchResponse);
+}

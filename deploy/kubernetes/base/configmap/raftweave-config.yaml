@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: raftweave-config
+  namespace: raftweave
+  labels:
+    app.kubernetes.io/name: raftweave
+    app.kubernetes.io/managed-by: kustomize
+data:
+  # Server configuration
+  SERVER_HOST: "0.0.0.0"
+  SERVER_PORT: "8080"
+  METRICS_PORT: "9090"
+  LOG_LEVEL: "info"
+
+  # PostgreSQL connection (non-secret)
+  POSTGRES_PORT: "5432"
+  POSTGRES_DB: "raftweave"
+  POSTGRES_SSL_MODE: "require"
+  POSTGRES_MAX_CONNS: "25"
+  POSTGRES_MIN_CONNS: "5"
+
+  # Redis connection (non-secret)
+  REDIS_PORT: "6379"
+  REDIS_DB: "0"
+  REDIS_POOL_SIZE: "10"
+
+  # Raft consensus configuration
+  RAFT_ELECTION_TIMEOUT_MS: "1500"
+  RAFT_HEARTBEAT_INTERVAL_MS: "500"
+  RAFT_SNAPSHOT_INTERVAL: "120"
+  RAFT_DATA_DIR: "/data/raft"
+
+  # OpenTelemetry configuration
+  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector.observability.svc.cluster.local:4317"
+  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+  OTEL_TRACES_SAMPLER: "parentbased_traceidratio"
+  OTEL_TRACES_SAMPLER_ARG: "0.1"
+
+  # Queue configuration
+  QUEUE_CRITICAL_WEIGHT: "6"
+  QUEUE_DEFAULT_WEIGHT: "3"
+  QUEUE_LOW_WEIGHT: "1"
+  QUEUE_BUILD_MAX_RETRY: "3"
+  QUEUE_BUILD_TIMEOUT: "30m"
+  QUEUE_PROVISION_MAX_RETRY: "5"
+  QUEUE_PROVISION_TIMEOUT: "10m"
+
+  # Registry
+  REGISTRY_URL: "ghcr.io/ryuzon07"

@@ -1,0 +1,143 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-ingestion
+  namespace: raftweave
+spec:
+  template:
+    spec:
+      containers:
+        - name: ingestion
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-build
+  namespace: raftweave
+spec:
+  template:
+    spec:
+      containers:
+        - name: build
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 4Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-provisioner
+  namespace: raftweave
+spec:
+  template:
+    spec:
+      containers:
+        - name: provisioner
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-replication
+  namespace: raftweave
+spec:
+  template:
+    spec:
+      containers:
+        - name: replication
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: raftweave-consensus
+  namespace: raftweave
+spec:
+  template:
+    spec:
+      containers:
+        - name: consensus
+          resources:
+            requests:
+              cpu: "1"
+              memory: 1Gi
+            limits:
+              cpu: "4"
+              memory: 2Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-dashboard
+  namespace: raftweave
+spec:
+  template:
+    spec:
+      containers:
+        - name: dashboard
+          resources:
+            requests:
+              cpu: 200m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: raftweave-postgres
+  namespace: raftweave
+spec:
+  template:
+    spec:
+      containers:
+        - name: postgres
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+            limits:
+              cpu: "2"
+              memory: 4Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-redis
+  namespace: raftweave
+spec:
+  template:
+    spec:
+      containers:
+        - name: redis
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi

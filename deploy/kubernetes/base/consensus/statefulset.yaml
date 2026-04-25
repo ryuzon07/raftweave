@@ -1,0 +1,159 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: raftweave-consensus
+  namespace: raftweave
+  labels:
+    app.kubernetes.io/name: raftweave
+    app.kubernetes.io/component: consensus
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  serviceName: raftweave-consensus-headless    # headless service for stable DNS
+  replicas: 3                                   # minimum for Raft quorum (N/2+1 = 2)
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: raftweave
+      app.kubernetes.io/component: consensus
+  podManagementPolicy: Parallel                 # start all 3 simultaneously for fast bootstrap
+  updateStrategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1                         # never take down more than 1 at a time (quorum safety)
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: raftweave
+        app.kubernetes.io/component: consensus
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: raftweave
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 120         # Raft needs time for leader handoff
+      containers:
+        - name: consensus
+          image: ghcr.io/ryuzon07/raftweave:latest
+          imagePullPolicy: Always
+          args: ["--mode=consensus"]
+          ports:
+            - name: raft
+              containerPort: 7000
+              protocol: TCP
+            - name: api
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: RAFT_NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name        # raftweave-consensus-0, -1, -2
+            - name: RAFT_BIND_ADDR
+              value: "0.0.0.0:7000"
+            - name: RAFT_PEERS
+              value: >-
+                raftweave-consensus-0.raftweave-consensus-headless.raftweave.svc.cluster.local:7000,raftweave-consensus-1.raftweave-consensus-headless.raftweave.svc.cluster.local:7000,raftweave-consensus-2.raftweave-consensus-headless.raftweave.svc.cluster.local:7000
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-postgres
+                  key: host
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-postgres
+                  key: user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-postgres
+                  key: password
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-redis
+                  key: host
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-redis
+                  key: password
+            - name: OTEL_SERVICE_NAME
+              value: "raftweave-consensus"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+            - configMapRef:
+                name: raftweave-config
+          volumeMounts:
+            - name: raft-data
+              mountPath: /data/raft              # Raft log and snapshot persistence
+          resources:
+            requests:
+              cpu: 500m
+              memory: 512Mi
+            limits:
+              cpu: "2"
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: api
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 5
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: api
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+            timeoutSeconds: 3
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: api
+            initialDelaySeconds: 10
+            periodSeconds: 5
+            failureThreshold: 24            # 2 min window for Raft bootstrap
+            timeoutSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false    # Raft needs write access to /data/raft
+            capabilities:
+              drop: ["ALL"]
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app.kubernetes.io/component: consensus
+              topologyKey: kubernetes.io/hostname  # MUST spread across nodes for HA
+  volumeClaimTemplates:
+    - metadata:
+        name: raft-data
+        labels:
+          app.kubernetes.io/name: raftweave
+          app.kubernetes.io/component: consensus
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        resources:
+          requests:
+            storage: 10Gi

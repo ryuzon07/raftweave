@@ -1,0 +1,145 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-ingestion
+  namespace: raftweave
+  labels:
+    app.kubernetes.io/name: raftweave
+    app.kubernetes.io/component: ingestion
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: raftweave
+      app.kubernetes.io/component: ingestion
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0          # Zero-downtime rolling deploy
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: raftweave
+        app.kubernetes.io/component: ingestion
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
+    spec:
+      serviceAccountName: raftweave
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65532           # nonroot user
+        fsGroup: 65532
+        seccompProfile:
+          type: RuntimeDefault
+      terminationGracePeriodSeconds: 60
+      containers:
+        - name: ingestion
+          image: ghcr.io/ryuzon07/raftweave:latest
+          imagePullPolicy: Always
+          args: ["--mode=ingestion"]
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+            - name: metrics
+              containerPort: 9090
+              protocol: TCP
+          env:
+            - name: POSTGRES_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-postgres
+                  key: host
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-postgres
+                  key: user
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-postgres
+                  key: password
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-redis
+                  key: host
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-redis
+                  key: password
+            - name: ENCRYPTION_KEY_V1
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-crypto
+                  key: aes-key-v1
+            - name: ENCRYPTION_KEY_V2
+              valueFrom:
+                secretKeyRef:
+                  name: raftweave-crypto
+                  key: aes-key-v2
+                  optional: true
+            - name: OTEL_SERVICE_NAME
+              value: "raftweave-ingestion"
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          envFrom:
+            - configMapRef:
+                name: raftweave-config
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: "1"
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 2
+            timeoutSeconds: 3
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 10
+            timeoutSeconds: 3
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchLabels:
+                    app.kubernetes.io/component: ingestion
+                topologyKey: kubernetes.io/hostname   # spread across nodes

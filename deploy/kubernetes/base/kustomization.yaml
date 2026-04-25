@@ -1,0 +1,57 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: raftweave
+
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: raftweave
+    includeSelectors: false
+
+resources:
+  # Namespace
+  - namespace.yaml
+
+  # RBAC
+  - rbac/serviceaccount.yaml
+  - rbac/role.yaml
+  - rbac/rolebinding.yaml
+
+  # Configuration
+  - configmap/raftweave-config.yaml
+
+  # Ingestion Layer (System 1)
+  - ingestion/deployment.yaml
+  - ingestion/service.yaml
+  - ingestion/hpa.yaml
+  - ingestion/pdb.yaml
+
+  # Raft Consensus (System 3)
+  - consensus/statefulset.yaml
+  - consensus/service.yaml
+  - consensus/headless-service.yaml
+  - consensus/pdb.yaml
+
+  # Build Pipeline (System 2)
+  - build/deployment.yaml
+  - build/service.yaml
+
+  # Provisioner (System 4)
+  - provisioner/deployment.yaml
+  - provisioner/service.yaml
+
+  # Replication (System 5)
+  - replication/deployment.yaml
+  - replication/service.yaml
+
+  # Dashboard (System 6)
+  - dashboard/deployment.yaml
+  - dashboard/service.yaml
+  - dashboard/ingress.yaml
+
+  # Infrastructure
+  - postgres/statefulset.yaml
+  - postgres/service.yaml
+  - redis/deployment.yaml
+  - redis/service.yaml
+  - redis/pvc.yaml

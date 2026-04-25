@@ -1,0 +1,7 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-build-worker
+  namespace: raftweave
+spec:
+  replicas: 3

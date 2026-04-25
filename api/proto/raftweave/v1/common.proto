@@ -1,0 +1,79 @@
+syntax = "proto3";
+
+package raftweave.v1;
+
+option go_package = "github.com/raftweave/raftweave/internal/gen/raftweave/v1;raftweavev1";
+
+// CloudProvider enumerates supported cloud providers.
+enum CloudProvider {
+  CLOUD_PROVIDER_UNSPECIFIED = 0;
+  CLOUD_PROVIDER_AWS = 1;
+  CLOUD_PROVIDER_AZURE = 2;
+  CLOUD_PROVIDER_GCP = 3;
+}
+
+// Region enumerates supported cloud regions across providers.
+enum Region {
+  REGION_UNSPECIFIED = 0;
+  // AWS regions
+  REGION_AWS_AP_SOUTH_1 = 1;
+  REGION_AWS_US_EAST_1 = 2;
+  REGION_AWS_US_WEST_2 = 3;
+  REGION_AWS_EU_WEST_1 = 4;
+  REGION_AWS_AP_SOUTHEAST_1 = 5;
+  // Azure regions
+  REGION_AZURE_CENTRAL_INDIA = 10;
+  REGION_AZURE_EAST_US = 11;
+  REGION_AZURE_WEST_EUROPE = 12;
+  REGION_AZURE_SOUTHEAST_ASIA = 13;
+  // GCP regions
+  REGION_GCP_ASIA_SOUTH1 = 20;
+  REGION_GCP_US_CENTRAL1 = 21;
+  REGION_GCP_EUROPE_WEST1 = 22;
+  REGION_GCP_ASIA_SOUTHEAST1 = 23;
+}
+
+// WorkloadStatus tracks the lifecycle state of a workload.
+enum WorkloadStatus {
+  WORKLOAD_STATUS_UNSPECIFIED = 0;
+  WORKLOAD_STATUS_PENDING = 1;
+  WORKLOAD_STATUS_BUILDING = 2;
+  WORKLOAD_STATUS_DEPLOYING = 3;
+  WORKLOAD_STATUS_RUNNING = 4;
+  WORKLOAD_STATUS_FAILING = 5;
+  WORKLOAD_STATUS_FAILED = 6;
+  WORKLOAD_STATUS_FAILOVER_IN_PROGRESS = 7;
+}
+
+// HealthStatus indicates the health of a component.
+enum HealthStatus {
+  HEALTH_STATUS_UNSPECIFIED = 0;
+  HEALTH_STATUS_HEALTHY = 1;
+  HEALTH_STATUS_DEGRADED = 2;
+  HEALTH_STATUS_UNREACHABLE = 3;
+}
+
+// ResourceSpec defines compute resources for a workload.
+message ResourceSpec {
+  string cpu = 1;
+  string memory = 2;
+  int32 replicas = 3;
+}
+
+// DatabaseSpec defines the database configuration for a workload.
+message DatabaseSpec {
+  string engine = 1;
+  string version = 2;
+  int32 storage_gb = 3;
+}
+
+// Pagination support for list operations.
+message PaginationRequest {
+  int32 page_size = 1;
+  string page_token = 2;
+}
+
+message PaginationResponse {
+  string next_page_token = 1;
+  int32 total_count = 2;
+}

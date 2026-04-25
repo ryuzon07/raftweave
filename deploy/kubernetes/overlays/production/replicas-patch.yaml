@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-ingestion
+  namespace: raftweave
+spec:
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-build
+  namespace: raftweave
+spec:
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-provisioner
+  namespace: raftweave
+spec:
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-replication
+  namespace: raftweave
+spec:
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: raftweave-dashboard
+  namespace: raftweave
+spec:
+  replicas: 3
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: raftweave-consensus
+  namespace: raftweave
+spec:
+  replicas: 3

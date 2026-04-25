@@ -1,0 +1,9 @@
+CREATE TABLE IF NOT EXISTS raft_state (
+    node_id VARCHAR(50) PRIMARY KEY,
+    role VARCHAR(20) NOT NULL DEFAULT 'FOLLOWER',
+    term BIGINT NOT NULL DEFAULT 0,
+    voted_for VARCHAR(50),
+    log_index BIGINT NOT NULL DEFAULT 0,
+    commit_index BIGINT NOT NULL DEFAULT 0,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);

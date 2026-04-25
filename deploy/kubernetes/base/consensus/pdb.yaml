@@ -1,0 +1,15 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: raftweave-consensus
+  namespace: raftweave
+  labels:
+    app.kubernetes.io/name: raftweave
+    app.kubernetes.io/component: consensus
+    app.kubernetes.io/managed-by: kustomize
+spec:
+  maxUnavailable: 1              # Only 1 Raft node down at a time — preserves quorum (2/3)
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: raftweave
+      app.kubernetes.io/component: consensus

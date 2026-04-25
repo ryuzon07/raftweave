@@ -1,0 +1,8 @@
+        }
+}
+		return nil, fmt.Errorf("invalid repository: %w", err)
+	}
+	repo.Client = p.client
+	maxAttempts := 3
+	delays := []time.Duration{2 * time.Second, 4 * time.Second, 8 * time.Second}
+

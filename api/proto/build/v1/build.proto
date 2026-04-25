@@ -1,0 +1,56 @@
+syntax = "proto3";
+package build.v1;
+option go_package = "github.com/ryuzon07/raftweave/gen/build/v1;buildv1";
+
+import "google/protobuf/timestamp.proto";
+
+service BuildService {
+    // StreamLogs streams build log lines as Server-Sent Events.
+    rpc StreamLogs(StreamLogsRequest) returns (stream StreamLogsResponse);
+
+    // GetBuild returns the current state of a build.
+    rpc GetBuild(GetBuildRequest) returns (GetBuildResponse);
+
+    // ListBuilds returns paginated build history for a workload.
+    rpc ListBuilds(ListBuildsRequest) returns (ListBuildsResponse);
+
+    // CancelBuild requests cancellation of an in-progress build.
+    rpc CancelBuild(CancelBuildRequest) returns (CancelBuildResponse);
+}
+
+message StreamLogsRequest {
+    string build_id   = 1;
+    int64  from_seq   = 2;  // 0 = from beginning
+}
+
+message StreamLogsResponse {
+    string                    build_id  = 1;
+    int64                     sequence  = 2;
+    string                    stream    = 3;  // "stdout" or "stderr"
+    string                    text      = 4;
+    google.protobuf.Timestamp timestamp = 5;
+    bool                      is_final  = 6;  // true on last line
+}
+
+message GetBuildRequest  { string build_id = 1; }
+message GetBuildResponse {
+    string build_id     = 1;
+    string workload_id  = 2;
+    string status       = 3;
+    string image_ref    = 4;
+    string image_digest = 5;
+    int64  size_bytes   = 6;
+    string error_message = 7;
+    google.protobuf.Timestamp started_at   = 8;
+    google.protobuf.Timestamp completed_at = 9;
+}
+
+message ListBuildsRequest {
+    string workload_id = 1;
+    int32  limit       = 2;
+    int32  offset      = 3;
+}
+message ListBuildsResponse { repeated GetBuildResponse builds = 1; }
+
+message CancelBuildRequest  { string build_id = 1; }
+message CancelBuildResponse { bool cancelled  = 1; }

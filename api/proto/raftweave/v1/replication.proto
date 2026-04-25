@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package raftweave.v1;
+
+option go_package = "github.com/raftweave/raftweave/internal/gen/raftweave/v1;raftweavev1";
+
+import "google/protobuf/timestamp.proto";
+import "raftweave/v1/common.proto";
+
+// ReplicationStatus describes the state of database replication between regions.
+message ReplicationStatus {
+  Region primary_region = 1;
+  Region standby_region = 2;
+  double lag_seconds = 3;
+  int64 lag_bytes = 4;
+  google.protobuf.Timestamp last_synced_at = 5;
+  string status = 6;
+}
+
+// WALEntry represents a single Write-Ahead Log entry.
+message WALEntry {
+  string lsn = 1;
+  google.protobuf.Timestamp timestamp = 2;
+  string relation = 3;
+  string operation = 4;
+  bytes data = 5;
+}
+
+// Request/Response messages
+message GetReplicationStatusRequest {
+  string workload_name = 1;
+}
+
+message GetReplicationStatusResponse {
+  repeated ReplicationStatus statuses = 1;
+}
+
+message StreamReplicationMetricsRequest {
+  string workload_name = 1;
+  int32 interval_seconds = 2;
+}
+
+message StreamReplicationMetricsResponse {
+  Region primary_region = 1;
+  Region standby_region = 2;
+  double lag_seconds = 3;
+  int64 lag_bytes = 4;
+  google.protobuf.Timestamp last_synced_at = 5;
+  string status = 6;
+}
+
+message PromoteStandbyRequest {
+  string workload_name = 1;
+  Region standby_region = 2;
+  string reason = 3;
+}
+
+message PromoteStandbyResponse {
+  string status = 1;
+  google.protobuf.Timestamp promoted_at = 2;
+  string new_primary_endpoint = 3;
+}
+
+// ReplicationService manages database replication across clouds.
+service ReplicationService {
+  rpc GetReplicationStatus(GetReplicationStatusRequest) returns (GetReplicationStatusResponse);
+  rpc StreamReplicationMetrics(StreamReplicationMetricsRequest) returns (stream StreamReplicationMetricsResponse);
+  rpc PromoteStandby(PromoteStandbyRequest) returns (PromoteStandbyResponse);
+}
