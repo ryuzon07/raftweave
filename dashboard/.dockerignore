@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.angular/
+.git
+.gitignore
+*.exe
+*.test
+.idea/
+.vscode/
+tmp/
+out/

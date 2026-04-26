@@ -4,12 +4,19 @@ WORKDIR /app
 
 COPY go.work go.work.sum ./
 COPY go.mod go.sum ./
-COPY cmd/ cmd/
-COPY internal/ internal/
-COPY api/ api/
+COPY cmd/raftweave-cli/go.mod cmd/raftweave-cli/go.sum ./cmd/raftweave-cli/
 
-RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -o /raftweave-server ./cmd/raftweave-server
+# Download dependencies
+RUN --mount=type=cache,target=/go/pkg/mod \
+    go mod download
+
+# Copy source code
+COPY . .
+
+# Build the binary
+RUN --mount=type=cache,target=/go/pkg/mod \
+    --mount=type=cache,target=/root/.cache/go-build \
+    CGO_ENABLED=0 GOOS=linux go build -o /raftweave-server ./cmd/raftweave-server
 
 FROM alpine:3.20
 

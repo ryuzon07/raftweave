@@ -55,3 +55,6 @@ resources:
   - redis/deployment.yaml
   - redis/service.yaml
   - redis/pvc.yaml
+
+  # Authentication (System 7)
+  - ../auth/base

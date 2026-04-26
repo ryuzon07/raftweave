@@ -38,8 +38,8 @@ spec:
       terminationGracePeriodSeconds: 60
       containers:
         - name: ingestion
-          image: ghcr.io/ryuzon07/raftweave:latest
-          imagePullPolicy: Always
+          image: ghcr.io/ryuzon07/raftweave:v1.0.2
+          imagePullPolicy: IfNotPresent
           args: ["--mode=ingestion"]
           ports:
             - name: http

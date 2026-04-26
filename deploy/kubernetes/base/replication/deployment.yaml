@@ -38,8 +38,8 @@ spec:
       terminationGracePeriodSeconds: 90
       containers:
         - name: replication
-          image: ghcr.io/ryuzon07/raftweave:latest
-          imagePullPolicy: Always
+          image: ghcr.io/ryuzon07/raftweave:v1.0.2
+          imagePullPolicy: IfNotPresent
           args: ["--mode=replication"]
           ports:
             - name: http

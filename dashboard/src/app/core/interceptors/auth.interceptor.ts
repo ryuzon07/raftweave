@@ -1,13 +1,11 @@
 import { HttpInterceptorFn } from '@angular/common/http';
-import { inject } from '@angular/core';
-import { AuthService } from '../auth/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const auth = inject(AuthService);
+  // Since tokens are stored in HttpOnly cookies, we just need to ensure
+  // that credentials are sent with every request to the API.
+  const cloned = req.clone({
+    withCredentials: true,
+  });
 
-  if (auth.isAuthenticated()) {
-    // TODO: Attach token from auth service
-  }
-
-  return next(req);
+  return next(cloned);
 };

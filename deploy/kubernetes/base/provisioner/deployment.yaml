@@ -38,8 +38,8 @@ spec:
       terminationGracePeriodSeconds: 120     # Provisioning operations need graceful shutdown
       containers:
         - name: provisioner
-          image: ghcr.io/ryuzon07/raftweave:latest
-          imagePullPolicy: Always
+          image: ghcr.io/ryuzon07/raftweave:v1.0.2
+          imagePullPolicy: IfNotPresent
           args: ["--mode=provisioner"]
           ports:
             - name: http

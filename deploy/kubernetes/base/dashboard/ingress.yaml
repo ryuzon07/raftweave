@@ -40,6 +40,29 @@ spec:
                 name: raftweave-ingestion
                 port:
                   name: http
+          # Auth service RPCs
+          - path: /api/auth.v1.AuthService
+            pathType: Prefix
+            backend:
+              service:
+                name: raftweave-auth
+                port:
+                  name: grpc
+          # OAuth login and callback flows
+          - path: /api/auth
+            pathType: Prefix
+            backend:
+              service:
+                name: raftweave-auth
+                port:
+                  name: grpc
+          - path: /auth
+            pathType: Prefix
+            backend:
+              service:
+                name: raftweave-auth
+                port:
+                  name: grpc
           # Webhook routes proxied to ingestion service
           - path: /webhooks
             pathType: Prefix

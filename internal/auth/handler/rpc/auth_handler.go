@@ -17,6 +17,7 @@ import (
 	redisadapter "github.com/raftweave/raftweave/internal/auth/adapter/redis"
 	"github.com/raftweave/raftweave/internal/auth/domain"
 	authv1 "github.com/raftweave/raftweave/internal/gen/auth/v1"
+	"go.uber.org/zap"
 )
 
 // contextKey type prevents collisions with other context values.
@@ -43,6 +44,7 @@ type AuthHandler struct {
 	sessionRepo domain.SessionRepository
 	githubProv  githubprovider.Provider
 	mailer      otp.Mailer
+	logger      *zap.Logger
 }
 
 // NewAuthHandler creates a new Connect-RPC auth handler.
@@ -50,10 +52,12 @@ func NewAuthHandler(
 	og otp.Generator, jwt jwtadapter.Issuer, ts redisadapter.RefreshTokenStore,
 	ur domain.UserRepository, mr domain.MembershipRepository,
 	sr domain.SessionRepository, gh githubprovider.Provider, m otp.Mailer,
+	l *zap.Logger,
 ) *AuthHandler {
 	return &AuthHandler{
 		otpGen: og, jwtIssuer: jwt, tokenStore: ts,
 		userRepo: ur, memberRepo: mr, sessionRepo: sr, githubProv: gh, mailer: m,
+		logger: l,
 	}
 }
 
@@ -146,10 +150,15 @@ func (h *AuthHandler) LogoutAll(ctx context.Context, _ *connect.Request[authv1.L
 func (h *AuthHandler) GetMe(ctx context.Context, _ *connect.Request[authv1.GetMeRequest]) (*connect.Response[authv1.GetMeResponse], error) {
 	claims := ClaimsFromContext(ctx)
 	if claims == nil {
+		h.logger.Warn("GetMe called without valid claims")
 		return nil, connect.NewError(connect.CodeUnauthenticated, errors.New("not authenticated"))
 	}
+	
+	h.logger.Info("GetMe successful", zap.String("user_id", claims.UserID))
+	
 	user, err := h.userRepo.GetByID(ctx, claims.UserID)
 	if err != nil {
+		h.logger.Error("GetMe failed to get user", zap.String("user_id", claims.UserID), zap.Error(err))
 		return nil, mapDomainError(err)
 	}
 	memberships, _ := h.memberRepo.GetUserWorkspaces(ctx, user.ID)

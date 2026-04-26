@@ -39,8 +39,8 @@ spec:
       terminationGracePeriodSeconds: 120         # Raft needs time for leader handoff
       containers:
         - name: consensus
-          image: ghcr.io/ryuzon07/raftweave:latest
-          imagePullPolicy: Always
+          image: ghcr.io/ryuzon07/raftweave:v1.0.2
+          imagePullPolicy: IfNotPresent
           args: ["--mode=consensus"]
           ports:
             - name: raft

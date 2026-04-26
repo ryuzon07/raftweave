@@ -120,6 +120,37 @@ make dashboard    # Build Angular dashboard
 make raft-cluster # Start 3-node Raft cluster
 ```
 
+### Kubernetes Deployment
+
+RaftWeave can also be deployed to a local or remote Kubernetes cluster using Kustomize.
+
+**Prerequisites:**
+- A running Kubernetes cluster (e.g., `minikube start` or Docker Desktop Kubernetes)
+- `kubectl` installed
+
+**Deploying the services:**
+```bash
+# Apply the base kustomization (includes auth, ingestion, build, replication, provisioner, and dashboard)
+kubectl apply -k deploy/kubernetes/base
+
+# Check the status of the pods
+kubectl get pods -n raftweave
+```
+
+### Testing
+
+**Unit and Integration Tests**
+Run all Go unit and integration tests (requires Docker for Postgres/Redis):
+```bash
+make test
+```
+
+**End-to-End Tests**
+To run the full end-to-end integration tests for ingestion, build, and observability flows:
+```bash
+go test -v -tags=integration ./tests/integration
+```
+
 ### Workload Deployment
 
 Define a workload using the declarative YAML format:9

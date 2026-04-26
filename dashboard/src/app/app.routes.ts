@@ -1,18 +1,29 @@
-import { Routes } from '@angular/router';
+import { Routes, Router } from '@angular/router';
 import { inject } from '@angular/core';
-import { Router } from '@angular/router';
 import { AuthService } from './core/services/auth.service';
+import { toObservable } from '@angular/core/rxjs-interop';
+import { filter, map, take } from 'rxjs/operators';
 
 const authGuard = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return auth.isAuthenticated() ? true : router.createUrlTree(['/login']);
+  
+  return toObservable(auth.isInitialized).pipe(
+    filter(initialized => initialized),
+    take(1),
+    map(() => auth.isAuthenticated() ? true : router.createUrlTree(['/login']))
+  );
 };
 
 const publicGuard = () => {
   const auth = inject(AuthService);
   const router = inject(Router);
-  return !auth.isAuthenticated() ? true : router.createUrlTree(['/dashboard']);
+  
+  return toObservable(auth.isInitialized).pipe(
+    filter(initialized => initialized),
+    take(1),
+    map(() => !auth.isAuthenticated() ? true : router.createUrlTree(['/dashboard']))
+  );
 };
 
 export const routes: Routes = [

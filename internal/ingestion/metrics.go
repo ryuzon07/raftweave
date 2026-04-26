@@ -1,6 +1,7 @@
 package ingestion
 
 import (
+	"go.opentelemetry.io/otel"
 	"go.opentelemetry.io/otel/metric"
 )
 
@@ -14,6 +15,9 @@ type IngestionMetrics struct {
 }
 
 func NewIngestionMetrics(meter metric.Meter) *IngestionMetrics {
+	if meter == nil {
+		meter = otel.Meter("raftweave-ingestion-noop")
+	}
 	ws, _ := meter.Int64Counter("raftweave.ingestion.workloads_submitted_total")
 	wp, _ := meter.Int64Counter("raftweave.ingestion.webhooks_processed_total")
 	ca, _ := meter.Int64Counter("raftweave.ingestion.credentials_added_total")

@@ -38,8 +38,8 @@ spec:
       terminationGracePeriodSeconds: 300     # Build workers need time to finish active builds
       containers:
         - name: build
-          image: ghcr.io/ryuzon07/raftweave:latest
-          imagePullPolicy: Always
+          image: ghcr.io/ryuzon07/raftweave:v1.0.2
+          imagePullPolicy: IfNotPresent
           args: ["--mode=build"]
           ports:
             - name: http

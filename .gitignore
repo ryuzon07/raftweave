@@ -11,25 +11,32 @@
 vendor/
 bin/
 dist/
+/raftweave-*
 
 # ==========================
 # Node / Angular
 # ==========================
 node_modules/
+.npm/
 dashboard/dist/
 dashboard/.angular/
 dashboard/.cache/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.eslintcache
 
 # ==========================
-# Docker
+# Docker / Kubernetes
 # ==========================
 docker-compose.override.yml
+.kube/
+kubeconfig
+*.kubeconfig
+.minikube/
 
 # ==========================
-# IDE
+# IDE / Editors
 # ==========================
 .idea/
 .vscode/
@@ -38,23 +45,41 @@ docker-compose.override.yml
 *~
 .DS_Store
 Thumbs.db
+.history/
+*.sublime-project
+*.sublime-workspace
 
 # ==========================
-# Environment
+# Environment / Secrets
 # ==========================
 .env
 .env.local
 .env.*.local
 deploy/.env
+setup_script.sh
+scripts/setup-secrets.sh
+scripts/*.sh
+*.pem
+*.key
+*.cert
+*.crt
+*.p12
+*.pfx
+secrets.yaml
+!deploy/**/secrets.yaml.example
 
 # ==========================
-# Build artifacts
+# Build & Tools
 # ==========================
 /internal/gen/
 tmp/
 coverage/
 *.cover
 *.prof
+.gemini/
+.pen/
+.artifacts/
+.scratch/
 
 # ==========================
 # Proto generated
@@ -63,7 +88,8 @@ coverage/
 *_connect.go
 
 # ==========================
-# OS
+# Logs
 # ==========================
-.DS_Store
-*.pem
+*.log
+logs/
+_logs/
