@@ -1,0 +1,121 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-spec-config
+  namespace: default
+data:
+  openapi.yaml: |
+    openapi: 3.0.0
+    info:
+      title: RaftWeave Team API
+      version: 1.0.0
+      description: Centralized API Documentation for RaftWeave
+    servers:
+      - url: https://api.raftweave.example.com
+        description: Production API
+    paths:
+      /health:
+        get:
+          summary: Health check
+          responses:
+            '200':
+              description: API responds with 200 OK when healthy
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: scalar-docs
+  namespace: default
+  annotations:
+    # Option 1: If using Stakater Reloader, this annotation automatically
+    # performs a rolling update when the ConfigMap changes.
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: scalar-docs
+  template:
+    metadata:
+      labels:
+        app: scalar-docs
+      annotations:
+        # Option 2: If using Helm/Kustomize, you can inject a checksum here 
+        # to force a rolling update on ConfigMap change.
+        # checksum/config: "sha256-of-configmap"
+    spec:
+      containers:
+      - name: scalar
+        image: scalarapi/api-reference:latest
+        imagePullPolicy: IfNotPresent
+        env:
+        - name: API_REFERENCE_CONFIG
+          # Applying the aesthetic configuration for the team
+          value: '{"theme": "deepSpace", "layout": "modern", "showSidebar": true, "search": true, "download": true, "spec": {"url": "/openapi/openapi.yaml"}}'
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: spec-volume
+          mountPath: /docs/openapi.yaml
+          subPath: openapi.yaml
+          readOnly: true
+      volumes:
+      - name: spec-volume
+        configMap:
+          name: api-spec-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: scalar-docs-service
+  namespace: default
+spec:
+  selector:
+    app: scalar-docs
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8080
+  type: ClusterIP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: scalar-docs-ingress
+  namespace: default
+  annotations:
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    
+    # ==========================================
+    # SECURITY: BASIC AUTHENTICATION (NGINX)
+    # ==========================================
+    # Uncomment the following lines to enable Basic Auth.
+    # Note: You must create a Secret named 'basic-auth' first.
+    # nginx.ingress.kubernetes.io/auth-type: basic
+    # nginx.ingress.kubernetes.io/auth-secret: basic-auth
+    # nginx.ingress.kubernetes.io/auth-realm: 'Authentication Required - RaftWeave Docs'
+
+    # ==========================================
+    # SECURITY: OIDC / AUTHELIA INTEGRATION
+    # ==========================================
+    # Uncomment the following lines to delegate auth to an external provider like Authelia.
+    # nginx.ingress.kubernetes.io/auth-url: "https://auth.example.com/api/verify"
+    # nginx.ingress.kubernetes.io/auth-signin: "https://auth.example.com/?rm=$request_uri"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api-docs.example.com
+    secretName: api-docs-tls
+  rules:
+  - host: api-docs.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: scalar-docs-service
+            port:
+              number: 80

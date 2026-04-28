@@ -27,7 +27,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: auth
-          image: raftweave-auth:v13
+          image: raftweave-auth:v14
           imagePullPolicy: IfNotPresent
           args: ["--mode=auth"]
           ports:

@@ -61,6 +61,7 @@ func (h *OAuthHandler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /auth/github/callback", h.GitHubCallback)
 	mux.HandleFunc("GET /auth/google/login", h.GoogleLogin)
 	mux.HandleFunc("GET /auth/google/callback", h.GoogleCallback)
+	mux.HandleFunc("GET /auth/logout", h.Logout)
 }
 
 // GitHubLogin redirects to GitHub OAuth URL.
@@ -129,6 +130,38 @@ func (h *OAuthHandler) GoogleCallback(w http.ResponseWriter, r *http.Request) {
 	}
 
 	h.issueTokensAndRedirect(w, r, user)
+}
+
+// Logout clears the session cookies and redirects to the dashboard.
+func (h *OAuthHandler) Logout(w http.ResponseWriter, r *http.Request) {
+	// 1. Get refresh token from cookie and revoke it in the store
+	cookie, err := r.Cookie("raftweave_rt")
+	if err == nil && cookie.Value != "" {
+		_ = h.tokenStore.Revoke(r.Context(), cookie.Value)
+	}
+
+	// 2. Determine security settings for cookies
+	secure := true
+	if strings.HasPrefix(r.Host, "localhost") || strings.HasPrefix(r.Host, "127.0.0.1") {
+		secure = false
+	}
+
+	// 3. Clear both access and refresh token cookies
+	http.SetCookie(w, &http.Cookie{
+		Name: "raftweave_at", Value: "",
+		Path: "/", Domain: h.cookieDomain,
+		MaxAge: -1, Secure: secure, HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+	http.SetCookie(w, &http.Cookie{
+		Name: "raftweave_rt", Value: "",
+		Path: "/auth/token", Domain: h.cookieDomain,
+		MaxAge: -1, Secure: secure, HttpOnly: true,
+		SameSite: http.SameSiteLaxMode,
+	})
+
+	// 4. Redirect to dashboard
+	http.Redirect(w, r, h.dashboardURL, http.StatusTemporaryRedirect)
 }
 
 func (h *OAuthHandler) getRedirectURI(r *http.Request, provider string) string {

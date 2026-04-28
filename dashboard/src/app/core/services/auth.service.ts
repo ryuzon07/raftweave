@@ -54,8 +54,8 @@ export class AuthService {
   logout(): void {
     this._user.set(null);
     this._isAuthenticated.set(false);
-    // Call backend logout or clear cookies if needed
-    window.location.href = '/';
+    // Redirect to backend logout endpoint which clears cookies and session
+    window.location.href = `${environment.apiBaseUrl}/auth/logout`;
   }
 
   canPerformAction(action: 'deploy' | 'scale' | 'delete' | 'settings'): boolean {

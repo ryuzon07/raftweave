@@ -34,7 +34,7 @@ spec:
       terminationGracePeriodSeconds: 30
       containers:
         - name: dashboard
-          image: raftweave-dashboard:v1.0.8
+          image: raftweave-dashboard:v1.0.9
           imagePullPolicy: IfNotPresent
           ports:
             - name: http

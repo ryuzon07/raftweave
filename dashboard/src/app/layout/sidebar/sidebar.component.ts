@@ -1,6 +1,7 @@
 import { Component, signal, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AnimationService } from '../../core/services/animation.service';
+import { AuthService } from '../../core/services/auth.service';
 
 interface NavItem {
   icon: string;
@@ -53,8 +54,15 @@ interface NavItem {
         }
       </nav>
 
-      <!-- Collapse Toggle -->
+      <!-- Footer -->
       <div class="sidebar__footer">
+        <button class="sidebar__item sidebar__logout" (click)="logout()">
+          <span class="sidebar__item-icon material-symbols-outlined">logout</span>
+          @if (!collapsed()) {
+            <span class="sidebar__item-label">Logout</span>
+          }
+        </button>
+
         <button class="sidebar__toggle" (click)="toggleSidebar()">
           <span class="sidebar__toggle-icon">{{ collapsed() ? '→' : '←' }}</span>
           @if (!collapsed()) {
@@ -66,7 +74,7 @@ interface NavItem {
 
     <!-- Mobile Bottom Nav -->
     <nav class="mobile-nav">
-      @for (item of navItems.slice(0, 5); track item.route) {
+      @for (item of navItems.slice(0, 4); track item.route) {
         <a class="mobile-nav__item"
            [routerLink]="item.route"
            routerLinkActive="active">
@@ -74,6 +82,10 @@ interface NavItem {
           <span class="mobile-nav__label">{{ item.label }}</span>
         </a>
       }
+      <button class="mobile-nav__item mobile-nav__logout" (click)="logout()">
+        <span class="mobile-nav__icon material-symbols-outlined">logout</span>
+        <span class="mobile-nav__label">Logout</span>
+      </button>
     </nav>
   `,
   styles: [`
@@ -189,6 +201,18 @@ interface NavItem {
       background: rgba(255, 255, 255, 0.06);
     }
 
+    .sidebar__logout {
+      width: 100%;
+      border: none;
+      background: transparent;
+      cursor: pointer;
+      margin-bottom: 4px;
+    }
+    .sidebar__logout:hover {
+      color: #ff5f5f;
+      background: rgba(255, 95, 95, 0.1);
+    }
+
     /* ━━━ Active Item — Neon Glow ━━━ */
     .sidebar__item.active {
       color: var(--rw-white);
@@ -277,9 +301,15 @@ interface NavItem {
       text-decoration: none;
       font-size: var(--text-xs);
       transition: color 0.3s ease-out;
+      background: transparent;
+      border: none;
+      cursor: pointer;
     }
     .mobile-nav__item.active {
       color: var(--rw-accent);
+    }
+    .mobile-nav__logout:hover {
+      color: #ff5f5f;
     }
     .mobile-nav__icon { font-size: 1.2rem; }
     .mobile-nav__label {
@@ -290,6 +320,7 @@ interface NavItem {
 })
 export class SidebarComponent {
   private animService = inject(AnimationService);
+  private authService = inject(AuthService);
 
   collapsed = signal(false);
 
@@ -297,6 +328,10 @@ export class SidebarComponent {
     const isCollapsed = !this.collapsed();
     this.collapsed.set(isCollapsed);
     document.documentElement.style.setProperty('--sidebar-width', isCollapsed ? '64px' : '240px');
+  }
+
+  logout() {
+    this.authService.logout();
   }
 
   navItems: NavItem[] = [
